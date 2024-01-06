@@ -15,6 +15,35 @@ System.Console.WriteLine("char:   " + sizeof(char)   + " bytes; " + sizeof(char)
 //ushort --- unsigned int, 16 bits
 //short  ---   signed int, 16 bits
 
+/*
+ * --- ANATOMY OF AN INSTRUCTION ---
+ * From MSB to LSB:
+ *      - 4 bits for the instruction OP code
+ *      - 3 bits for the register you want to do the operation in (we have registers from 0 to 7 so only 3 bits are necessary)
+ *      - 8 bits for to represent a given value or a value stored in a register
+ *      - 1 bit as a selector. 
+ *          If this bit is 1 the operation will be performed between the value stored in the register given in those 3 bits and the value stored in the register given in those 8 bits.
+ *          If this bit is 0 the operation will be performed between the value stored in the register given in those 3 bits and the value given those 8 bits. 
+ * --- INSTRUCTION OP CODES ---
+ * INPUT:  0b0000
+ * OUTPUT: 0b0001
+ * ADD:    0b0010
+ * SUB:    0b0011
+ * MUL:    0b0100
+ * DIV:    0b0101
+ * MOD:    0b0110 
+ * MOV:    0b0111
+ * 
+ * --- SPECIFIC INSTRUCTIONS FOR THE GAME ---
+ * These are combination of the previous instructions. Basically, when the CPU encounters these instructions the ALU performs multiple low level instructions
+ *
+ * Left Player Scores :  0b1010000000000000
+ * Right Player Scores : 0b1011000000000000
+ * Move Up-Left:         0b1100000000000000
+ * Move Up-Right:        0b1101000000000000
+ * Move Down-Left:       0b1110000000000000
+ * Move Down-Right:      0b1111000000000000
+ */
 
 using System;
 using System.Collections.Generic;
@@ -26,6 +55,9 @@ namespace Project
 {
     public struct CPU
     {
+        ALU alu { get; set; }
+        Pong pong = new Pong(60, 20);
+
         short PC; //Program Counter
         short LR; //Link Register
         short SP; //Stack Pointer
@@ -136,7 +168,14 @@ namespace Project
         {
             short fmem = mem.ExtractMem(PC);
             //Console.WriteLine(PC + " --- " + fmem);
-            PC++;
+            if(PC == 399)
+            {
+                PC = 0;
+            }
+            else
+            {
+                PC++;
+            }
             return fmem;
         }
 
@@ -148,28 +187,174 @@ namespace Project
             short Op;
 
             //INPUT
-            if((((short)(Instruction >> 7)) & 0b111111111) == 0b011100010)
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0000)
             {
-                Rindex1 = (short)((Instruction >> 4) & 0b111);
-                Op = (short)(Instruction & 0b111);
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
                 INPUT(ref R[Rindex1]);
             }
 
             //OUTPUT
-            if((((short)(Instruction >> 7)) & 0b111111111) == 0b011100011)
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0001)
             {
-                Rindex1 = (short)((Instruction >> 4) & 0b111);
-                Op = (short)(Instruction & 0b111);
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
                 OUTPUT(R[Rindex1]);
             }
 
+            //ADD
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0010)
+            {
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
+                Rindex2 = (short)((Instruction >> 1) & 0b11111111);
+
+                if((short)(Instruction & 0b1) == 1)
+                {
+                    alu.ADD(ref R[Rindex1], ref R[Rindex2]);
+                }
+                else
+                {
+                    alu.ADD(ref R[Rindex1], ref Rindex2);
+                }
+            }
+            
+            //SUB
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0011)
+            {
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
+                Rindex2 = (short)((Instruction >> 1) & 0b11111111);
+                if((short)(Instruction & 0b1) == 1)
+                {
+                    alu.SUB(ref R[Rindex1], ref R[Rindex2]);
+                }
+                else
+                {
+                    alu.SUB(ref R[Rindex1], ref Rindex2);
+                }
+            }
+
+            //MUL
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0100)
+            {
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
+                Rindex2 = (short)((Instruction >> 1) & 0b11111111);
+                if((short)(Instruction & 0b1) == 1)
+                {
+                    alu.MUL(ref R[Rindex1], ref R[Rindex2]);
+                }
+                else
+                {
+                    alu.MUL(ref R[Rindex1], ref Rindex2);
+                }    
+            }
+
+            //DIV
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0101)
+            {
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
+                Rindex2 = (short)((Instruction >> 1) & 0b11111111);
+                if((short)(Instruction & 0b1) == 1)
+                {
+                    alu.DIV(ref R[Rindex1], ref R[Rindex2]);
+                }
+                else
+                {
+                    alu.DIV(ref R[Rindex1], ref Rindex2);
+                }
+            }
+
+            //MOD
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0110)
+            {
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
+                Rindex2 = (short)((Instruction >> 1) & 0b11111111);
+                if((short)(Instruction & 0b1) == 1)
+                {
+                    alu.MOD(ref R[Rindex1], ref R[Rindex2]);
+                }
+                else
+                {
+                    alu.MOD(ref R[Rindex1], ref Rindex2);
+                }
+            }
+
+            //MOV
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b0111)
+            {
+                Rindex1 = (short)((Instruction >> 9) & 0b111);
+                Rindex2 = (short)((Instruction >> 1) & 0b11111111);
+                if((short)(Instruction & 0b1) == 1)
+                {
+                    alu.MOV(ref R[Rindex1], ref R[Rindex2]);
+                }
+                else
+                {
+                    alu.MOV(ref R[Rindex1], ref Rindex2);
+                }
+            }
+
+            //Move Up-Left:    0b1100
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b1100)
+            {
+                short val = (short)(0b1);
+                alu.SUB(ref R[2], ref val);
+                alu.SUB(ref R[3], ref val);
+            }
+            //Move Up-Right:    0b1101
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b1101)
+            {
+                short val = (short)(0b1);
+                alu.ADD(ref R[2], ref val);
+                alu.SUB(ref R[3], ref val);
+            }
+            //Move Down-Left:    0b1110
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b1110)
+            {
+                short val = (short)(0b1);
+                alu.SUB(ref R[2], ref val);
+                alu.ADD(ref R[3], ref val);
+            }
+            //Move Down-Right:    0b1111
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b1111)
+            {
+                short val = (short)(0b1);
+                alu.ADD(ref R[2], ref val);
+                alu.ADD(ref R[3], ref val);
+            }
+
+            //Left Player Scores :  0b1010000000000000
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b1010)
+            {
+                short val = (short)(0b1);
+                short centerX = (short)(0b11110);
+                short centerY = (short)(0b1010);
+                alu.ADD(ref R[4], ref val);
+                alu.MOV(ref R[2], ref centerX);
+                alu.MOV(ref R[3], ref centerY);
+            }
+
+            //Right Player Scores :  0b1011000000000000
+            if((((short)(Instruction >> 12)) & 0b1111) == 0b1011)
+            {
+                short val = (short)(0b1);
+                short centerX = (short)(0b11110);
+                short centerY = (short)(0b1010);
+                alu.ADD(ref R[5], ref val);
+                alu.MOV(ref R[2], ref centerX);
+                alu.MOV(ref R[3], ref centerY);
+            }
             Count++;
         }
 
         public void RUN(Memory mem)
         {
-            while(PC < 400)
+            pong.Initialization(ref PC, ref mem, ref R);
+            mem.ExtractMem(PC);
+            Execute(mem);
+            mem.ExtractMem(PC);
+            Execute(mem);
+
+            while(true)
             {
+                pong.Run(ref PC, ref mem, ref R);
                 if (mem.ExtractMem(PC) == 0)
                 {
                     break;

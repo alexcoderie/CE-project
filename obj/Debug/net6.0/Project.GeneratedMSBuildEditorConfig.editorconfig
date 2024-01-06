@@ -8,4 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Project
-build_property.ProjectDir = C:\Users\Lenovo\Desktop\UPT - An 3 Sem 1\Computer Engineering (CE)\Project\Project\
+build_property.ProjectDir = D:\Scoala\Faculta\Anul 3\Semestrul 1\CE\Project\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 

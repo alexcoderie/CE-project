@@ -19,12 +19,6 @@ namespace Project
             {
                 MemData[i] = 0;
             }
-
-            MemData[0] = 0b0111000100000010;
-            MemData[1] = 0b0111000100010010;
-            MemData[2] = 0b0111000100100010;
-            MemData[3] = 0b0111000100110010;
-            MemData[4] = 0b0111000110000010;
         }
 
         public void ViewMem() //!!! Works, however it needs some "pretty printing" BS...
@@ -44,6 +38,11 @@ namespace Project
         {
             //Console.WriteLine(PC);
             return MemData[PC];
+        }
+
+        public void StoreInstruction(short instruction, short PC)
+        {
+            MemData[PC] = instruction;
         }
     }
 }
