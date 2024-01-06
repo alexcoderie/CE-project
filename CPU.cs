@@ -43,6 +43,14 @@ System.Console.WriteLine("char:   " + sizeof(char)   + " bytes; " + sizeof(char)
  * Move Up-Right:        0b1101000000000000
  * Move Down-Left:       0b1110000000000000
  * Move Down-Right:      0b1111000000000000
+ *
+ * R[0] is used to store the position of the left paddle
+ * R[1] is used to store the position of the right paddle
+ * R[2] is used to store the position of the ball on the X axis 
+ * R[3] is used to store the position of the ball on the Y axis 
+ * R[4] is used to store the score of the left player
+ * R[5] is used to store the score of the right player
+ *
  */
 
 using System;
